@@ -1,0 +1,45 @@
+[project]
+name = "income-prediction"
+description = "Deploying a Scalable Machine Learning Pipeline in Production for Income Prediction"
+version = "0.1.0"
+authors = [
+  {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+maintainers = [
+  {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+license-files = [
+  "LICENSE",
+  "LICENSE-Udacity",
+]
+dependencies = [
+  "fastapi~=0.136.1",
+  "gradio[mcp,oauth]~=6.14",
+  "pandas~=3.0",
+  "requests~=2.33",
+  "scikit-learn~=1.8",
+  "uvicorn~=0.46.0",
+  "wandb~=0.26.0",
+]
+requires-python = ">=3.13"
+classifiers = [
+  "License :: Other/Proprietary License",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+]
+
+[dependency-groups]
+develop = [
+  "nbformat~=5.10",
+  "ipykernel~=7.2",
+  "ipywidgets~=8.1",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = false
