@@ -1,0 +1,36 @@
+name: Deploy to Hugging Face
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-to-hf:
+    name: Deploy to Hugging Face
+    runs-on: ubuntu-latest
+    if: ${{ github.server_url == 'https://github.com' }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          python-version: '3.13'
+      - name: Install Deploy Dependencies
+        run: |
+          uv sync --only-group deploy
+      - name: Create requirements.txt
+        run: |
+          uv run pip-compile ./pyproject.toml
+      - name: Clean Deploy Artifacts
+        run: |
+          rm -rf .pdm-build/
+          rm -rf .github/
+          rm -rf .venv/
+          rm -f sanitycheck.py
+          rm -f uv.lock
+      - name: Deploy to Hugging Face Spaces
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: cariad-robert-abel/income-prediction
+          hf_token: ${{ secrets.HF_TOKEN }}

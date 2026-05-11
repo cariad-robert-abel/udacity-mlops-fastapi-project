@@ -36,6 +36,9 @@ develop = [
   "ipykernel~=7.2",
   "ipywidgets~=8.1",
 ]
+deploy = [
+  "pip-tools~=7.5",
+  ]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -43,3 +46,9 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 distribution = false
+
+[tool.pip-tools.compile]
+generate-hashes = false
+no-emit-index-url = true
+no-emit-trusted-host=true
+strip-extras = true
