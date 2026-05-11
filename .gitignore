@@ -17,3 +17,7 @@ __pycache__/
 
 # Auto-Generated Files
 requirements.txt
+
+# Weights & Biases
+artifacts/
+wandb/
