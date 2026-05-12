@@ -1,0 +1,6 @@
+data: 'census-income-clean:latest'
+split: 'census-income-split'
+test-size: 0.2
+random-seed: 0x870ee45f
+stratify:
+  - salary

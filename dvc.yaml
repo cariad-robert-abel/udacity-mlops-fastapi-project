@@ -1,0 +1,35 @@
+stages:
+  prep:
+    cmd: >-
+      python ./src/income-prediction/__main__.py prep
+      --config cfg/preprocessing.yml
+    deps:
+    - ./src/income-prediction/__main__.py
+    params:
+    - cfg/preprocessing.yml:
+      - data
+      - test-size
+      - random-seed
+    metrics:
+      - ./src/income-prediction/data/metrics.yml:
+          cache: false
+    outs:
+    - ./src/income-prediction/data/test.csv
+    - ./src/income-prediction/data/train.csv
+  train:
+    cmd: >-
+      python ./src/income-prediction/__main__.py train
+      --config cfg/training.yml
+    deps:
+    - ./src/income-prediction/__main__.py
+    - ./src/income-prediction/model.py
+    params:
+    - cfg/training.yml:
+      - data
+      - random-seed
+      - random-forest-classifier
+    metrics:
+      - ./src/income-prediction/model/metrics.yml:
+          cache: false
+    outs:
+    - ./src/income-prediction/model/model.joblib

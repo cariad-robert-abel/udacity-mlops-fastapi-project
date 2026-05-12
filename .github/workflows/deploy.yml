@@ -26,6 +26,7 @@ jobs:
           rm -rf .pdm-build/
           rm -rf .github/
           rm -rf .venv/
+          rm -rf cfg/
           rm -f EDA.ipynb
           rm -f sanitycheck.py
           rm -f uv.lock
