@@ -161,7 +161,7 @@ class IncomePredictionModel:
         Args:
             train: Training Dataset
         """
-        X_train, y_train, w_train = IncomePredictionModel._prepare_data(train, label='salary', weights='fnlwgt')
+        X_train, y_train, w_train = IncomePredictionModel._prepare_data(train, label='salary')
 
         logger.info(f'Training model on {len(X_train)} samples...')
         self._pipeline.fit(X_train, y_train, classifier__sample_weight=w_train)
@@ -175,7 +175,7 @@ class IncomePredictionModel:
         Returns:
             A tuple containing the precision, recall, and F1 score of the trained model on the test set.
         """
-        X, y, w = IncomePredictionModel._prepare_data(test, label='salary', weights='fnlwgt')
+        X, y, w = IncomePredictionModel._prepare_data(test, label='salary')
         # calculate predictions
         preds = self._pipeline.predict(X)
         # keyword-arguments for score functions
@@ -204,5 +204,5 @@ class IncomePredictionModel:
         Returns:
             A numpy array containing the predicted labels.
         """
-        X, _, _ = IncomePredictionModel._prepare_data(data, label='salary', weights='fnlwgt')
+        X, _, _ = IncomePredictionModel._prepare_data(data, label='salary')
         return self._pipeline.predict(X)
