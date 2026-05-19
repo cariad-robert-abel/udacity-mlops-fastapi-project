@@ -11,10 +11,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
+import uvicorn
 import wandb
 from sklearn.model_selection import train_test_split
 
 from model import IncomePredictionModel
+from app import IncomePredictionApp
 from __init__ import *  # noqa: F401,F403
 
 
@@ -165,12 +167,44 @@ def train_model(config_path: Path) -> None:
     run.finish()
 
 
+def serve(host: str, port: int, model_ref: str):
+    """Serve Production Model with FastAPI App
+
+    Args:
+        host: host name/address to bind the server
+        port: port number to bind the server
+        model_ref: fully-qualified reference to the model artifact in <model-name>:<alias> format
+
+    Raises:
+        OSError: if model or data files cannot be accessed
+    """
+    logger.info(f'Serving the model {model_ref} on {host}:{port}...')
+
+    # use W&B artifacts without active run
+    api = wandb.Api()
+
+    # download model and test data artifacts
+    model_artifact = api.artifact(f'{os.environ["WANDB_PROJECT"]}/{model_ref}', type='model')
+    model_filename = model_artifact.file()
+    logger.info(f'Loaded model {model_artifact.name} ({model_artifact.version}) from W&B')
+
+    # create model and applications
+    model = IncomePredictionModel.from_model(model_filename)
+    app = IncomePredictionApp(model)
+
+    uvicorn.run(app, host=host, port=port)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Income Classification App')
     subparsers = parser.add_subparsers(title='command', dest='command', description='Sub-Command')
     parser.set_defaults(command='serve')
 
-    serve_parser = subparsers.add_parser('serve', help='Serve the App (default)')  # noqa: F841
+    serve_parser = subparsers.add_parser('serve', help='Serve the App (default)')
+    serve_parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to bind server')
+    serve_parser.add_argument('--port', type=int, default=7860, help='Port to bind server')
+    serve_parser.add_argument('--model', type=str, default='income-prediction-model:production',
+                              help='Fully-qualified model name in <model-name>:<alias> format')
 
     prep_parser = subparsers.add_parser('prep', help='Prepare the Data')
     prep_parser.add_argument('--config', type=Path, required=True, help='Path to the preprocessing configuration file')
@@ -191,9 +225,7 @@ def main() -> int:
         case 'train':
             train_model(args.config)
         case 'serve':
-            # TODO: implement web server + FastAPI app
-            raise NotImplementedError('Serve command is not implemented yet')
-            pass
+            serve(args.host, args.port, args.model)
         case _:
             raise NotImplementedError(f'Unknown command: {args.command}')
 
