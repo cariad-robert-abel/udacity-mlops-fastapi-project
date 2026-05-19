@@ -27,7 +27,10 @@ jobs:
           rm -rf .github/
           rm -rf .venv/
           rm -rf cfg/
+          rm -rf tests/
+          rm -f .flake8
           rm -f EDA.ipynb
+          rm -f pytest.ini
           rm -f sanitycheck.py
           rm -f uv.lock
       - name: Deploy to Hugging Face Spaces

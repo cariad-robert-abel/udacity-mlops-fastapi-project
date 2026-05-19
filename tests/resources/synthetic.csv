@@ -1,0 +1,14 @@
+age,workclass,fnlwgt,education,hours-per-week,salary
+23,Private,120000,HS-grad,35,<=50K
+45,Self-emp-not-inc,220000,Bachelors,60,>50K
+38,Private,180000,Some-college,45,<=50K
+29,State-gov,140000,Bachelors,40,<=50K
+52,Private,260000,Masters,55,>50K
+41,Federal-gov,210000,Bachelors,50,>50K
+27,Private,130000,HS-grad,38,<=50K
+33,Private,175000,Assoc-acdm,42,<=50K
+58,Self-emp-not-inc,280000,Doctorate,65,>50K
+36,Private,160000,Some-college,44,<=50K
+48,Federal-gov,240000,Masters,58,>50K
+30,State-gov,150000,HS-grad,39,<=50K
+30,,123456,Doctorate,15,<=50K

@@ -1,0 +1,30 @@
+name: CI/CD Pipeline (GHE)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  run-unit-tests:
+    name: Run Unit Tests
+    runs-on: auto-u24-base
+    if: ${{ github.server_url == 'https://git.hub.vwgroup.com' }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Setup Python
+        uses: cariad-actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          artifactory-user: ${{ vars.JFROG_RT_CTN_TENSOR_TITANS_RO_USERNAME }}
+          artifactory-token: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RO_REFERENCE }}
+      - name: Install Run-Time & Test Dependencies
+        run: |
+          pip install --group test .
+      - name: Run Flake8
+        run: |
+          flake8
+      - name: Run Unit Tests
+        run: |
+          pytest -v
