@@ -149,8 +149,8 @@ class IncomePredictionModel:
             Tuple (X, y, w) containing the prepared features, labels, and sample weights.
         """
         X = data.drop(columns=[label, weights], errors='ignore')
-        y = data[label] if label else None
-        w = data[weights] if weights else None
+        y = data.get(label, None) if label else None
+        w = data.get(weights, None) if weights else None
         return X, y, w
 
     def train(self, train: 'pd.DataFrame'):

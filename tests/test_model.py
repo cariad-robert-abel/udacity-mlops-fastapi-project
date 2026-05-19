@@ -51,6 +51,67 @@ def train_df(synthetic_data: pd.DataFrame):
     return synthetic_data.iloc[:2 * len(synthetic_data) // 3]
 
 
+def test_model_prepare_data_full(train_df: pd.DataFrame):
+    """Test Data Preparation of the Model (Full Data)
+
+    Args:
+        train_df: DataFrame containing the training data
+    """
+    model = IncomePredictionModel.from_config(RFC_CONFIG)
+    X, y, w = model._prepare_data(train_df,
+                                  label='salary',
+                                  weights='fnlwgt')
+
+    assert len(X) == len(train_df)
+    assert len(y) == len(train_df)
+    assert len(w) == len(train_df)
+
+
+def test_model_prepare_data_wo_label(train_df: pd.DataFrame):
+    """Test Data Preparation of the Model (Unlabeled Data)
+
+    Args:
+        train_df: DataFrame containing the training data
+    """
+    model = IncomePredictionModel.from_config(RFC_CONFIG)
+    X, y, w = model._prepare_data(train_df.drop(columns=['salary']),
+                                  label='salary', weights='fnlwgt')
+
+    assert len(X) == len(train_df)
+    assert y is None
+    assert len(w) == len(train_df)
+
+
+def test_model_prepare_data_wo_weights(train_df: pd.DataFrame):
+    """Test Data Preparation of the Model (Unweighted Data)
+
+    Args:
+        train_df: DataFrame containing the training data
+    """
+    model = IncomePredictionModel.from_config(RFC_CONFIG)
+    X, y, w = model._prepare_data(train_df.drop(columns=['fnlwgt']),
+                                  label='salary', weights='fnlwgt')
+
+    assert len(X) == len(train_df)
+    assert len(y) == len(train_df)
+    assert w is None
+
+
+def test_model_prepare_data_base(train_df: pd.DataFrame):
+    """Test Data Preparation of the Model (Inputs Only)
+
+    Args:
+        train_df: DataFrame containing the training data
+    """
+    model = IncomePredictionModel.from_config(RFC_CONFIG)
+    X, y, w = model._prepare_data(train_df.drop(columns=['salary', 'fnlwgt']),
+                                  label='salary', weights='fnlwgt')
+
+    assert len(X) == len(train_df)
+    assert y is None
+    assert w is None
+
+
 def test_model_train_and_validate(train_df: pd.DataFrame, test_df: pd.DataFrame):
     """Test Basic Training and Validation of the Model
 
