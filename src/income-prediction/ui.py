@@ -232,6 +232,19 @@ INCOME_PREDICTION_UI_ELEMENTS = [
 ]
 
 
+INCOME_PREDICTION_FEATURES = {
+    '':               None,
+    'Race':           'race',
+    'Sex':            'sex',
+    'Citizenship':    'native-country',
+    'Marital Status': 'marital-status',
+    'Household Role': 'relationship',
+    'Education':      'education',
+    'Workclass':      'workclass',
+    'Occupation':     'occupation',
+}
+
+
 logger = logging.getLogger(__package__)
 
 
@@ -249,14 +262,31 @@ class IncomePredictionUI(gr.Blocks):
         self._model = model
         self._df = df
         self._elems: dict[str, gr.Component] = {}
+
+        prediction_ui = self.__build_prediction_ui()
+        metrics_ui = self.__build_metrics_ui()
+
         with self:
             gr.Markdown("""\
 ## Income Prediction Model UIs
 
 This UI allows you to interactively test the trained model on the test dataset.
 The model predicts whether an individual earns more than $50K per year based on their features.
-You can predict the income category for an individual by entering their features below:
 """)
+            gr.TabbedInterface(
+                [prediction_ui, metrics_ui],
+                tab_names=['Prediction', 'Metrics']
+            )
+
+    def __build_prediction_ui(self) -> gr.Blocks:
+        """Build the Prediction UI Tab
+
+        Returns:
+            A Gradio Blocks containing the Prediction UI
+        """
+        with gr.Blocks() as result:
+            # Description
+            gr.Markdown("""You can predict the income category for an individual by entering their features below:""")
             # Inputs
             for row in INCOME_PREDICTION_UI_ELEMENTS:
                 with gr.Row(equal_height=True):
@@ -297,6 +327,67 @@ You can predict the income category for an individual by entering their features
             btn_randomize.click(partial(self._randomize, keys=tuple(self._elems.keys())),
                                 outputs=tuple(self._elems.values()),
                                 show_progress='hidden')
+        return result
+
+    def __build_metrics_ui(self) -> gr.Blocks:
+        """Build the Metrics UI Tab
+
+        Returns:
+            A Gradio Blocks containing the Metrics UI
+        """
+        with gr.Blocks() as result:
+            gr.Markdown("""You can compute precision, recall, and F-beta model metrics for qualitative
+features by selecting the relevant feature below:""")
+            with gr.Row():
+                with gr.Column(scale=1):
+                    gr.Markdown()
+                    cbo_feature = gr.Dropdown(label="Feature", choices=tuple(INCOME_PREDICTION_FEATURES.items()),
+                                              value=None)
+                    btn_compute = gr.Button('📊 Compute Metrics', variant='primary')
+                    tbl_json = gr.JSON(label="Metrics (Raw JSON)")
+                with gr.Column(scale=3):
+                    tbl_result = gr.DataFrame(datatype=['str', 'number', 'number', 'number'], interactive=False)
+
+            # click handler
+            btn_compute.click(self._metrics, cbo_feature, [tbl_json, tbl_result])
+            # pre-populate output table
+            result.load(self._metrics, cbo_feature, [tbl_json, tbl_result])
+
+        return result
+
+    def _metrics(self, column: str | None):
+        """Compute Metrics for a Qualitative Feature
+
+        Args:
+            column: feature column to compute metrics for
+                    or None for overall metrics without slicing
+
+        Returns:
+            A tuple containing the raw metrics dictionary as JSON and Gradio DataFrame update
+        """
+        result = {
+            'feature': column,
+            'data': {}
+        }
+
+        if (column is None):
+            label = 'Overall Metrics'
+            result['data'] = {'*': dict(zip(('precision', 'recall', 'f-beta'), self._model.validate(self._df)))}
+        else:
+            label = f'Metrics by {next(k for k, v in INCOME_PREDICTION_FEATURES.items() if v == column)}'
+            result['data'] = {
+                group: dict(zip(('precision', 'recall', 'f-beta'), self._model.validate(subset)))
+                for group, subset in self._df.groupby(column)
+            }
+
+        # flatten hierarchical data
+        rows = [{(column or ''): group, **metrics} for group, metrics in result['data'].items()]
+        df = pd.DataFrame(rows)
+
+        logger.info(f'Computed metrics for column "{column}": {result["data"]}')
+
+        # update table label
+        return result, gr.update(value=df, label=label)
 
     def _predict(self, *args):
         """Predict Income Category (Single Record)
@@ -316,7 +407,14 @@ You can predict the income category for an individual by entering their features
         return preds[0]
 
     def _randomize(self, keys: tuple[str]):
-        """Randomize Inputs"""
+        """Randomize Inputs
+
+        Args:
+            keys: UI elements to randomize
+
+        Returns:
+            Randomized values for the specified UI elements
+        """
         results = []
         for key in keys:
             # retrieve the UI element
