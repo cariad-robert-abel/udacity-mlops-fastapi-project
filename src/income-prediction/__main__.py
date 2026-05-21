@@ -198,7 +198,9 @@ def serve(host: str, port: int, model_ref: str):
 def main() -> int:
     parser = argparse.ArgumentParser(description='Income Classification App')
     subparsers = parser.add_subparsers(title='command', dest='command', description='Sub-Command')
-    parser.set_defaults(command='serve')
+    # default to serve if no command provided
+    if len(sys.argv) < 2:
+        sys.argv.append('serve')
 
     serve_parser = subparsers.add_parser('serve', help='Serve the App (default)')
     serve_parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to bind server')
