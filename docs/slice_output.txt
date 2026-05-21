@@ -1,0 +1,17 @@
+Metrics for data slice education on model income-prediction-model:production with dataset census-income-split:reference.
+10th: precision=0.6000 recall=0.2500 f-beta=0.3529
+11th: precision=0.7500 recall=0.2727 f-beta=0.4000
+12th: precision=0.0000 recall=0.0000 f-beta=0.0000
+1st-4th: precision=1.0000 recall=1.0000 f-beta=1.0000
+5th-6th: precision=0.0000 recall=0.0000 f-beta=0.0000
+7th-8th: precision=1.0000 recall=0.1250 f-beta=0.2222
+9th: precision=0.0000 recall=0.0000 f-beta=0.0000
+Assoc-acdm: precision=0.8095 recall=0.5312 f-beta=0.6415
+Assoc-voc: precision=0.6462 recall=0.5526 f-beta=0.5957
+Bachelors: precision=0.7447 recall=0.7553 f-beta=0.7500
+Doctorate: precision=0.8356 recall=0.8841 f-beta=0.8592
+HS-grad: precision=0.6140 recall=0.3826 f-beta=0.4714
+Masters: precision=0.8394 recall=0.8663 f-beta=0.8526
+Preschool: precision=1.0000 recall=1.0000 f-beta=1.0000
+Prof-school: precision=0.9222 recall=0.9326 f-beta=0.9274
+Some-college: precision=0.6947 recall=0.4853 f-beta=0.5714
