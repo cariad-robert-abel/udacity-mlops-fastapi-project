@@ -32,23 +32,23 @@ stages:
     deps:
     - path: ./src/income-prediction/__main__.py
       hash: md5
-      md5: 3820f7de9ab241d1b3705fa6433896fa
-      size: 6734
+      md5: 506a6b84e743b16c41defd0bbd48b755
+      size: 8883
     - path: ./src/income-prediction/model.py
       hash: md5
-      md5: 032e98fe1870326443504c4ae414ddd0
-      size: 7536
+      md5: 397f558d01ec3c4cd64b19a7500adc48
+      size: 7502
     params:
       cfg/training.yml:
         data: census-income-split:reference
         random-forest-classifier:
-          n_estimators: 100
+          n_estimators: 275
           criterion: gini
-          max_depth:
+          max_depth: 100
           min_samples_split: 2
           min_samples_leaf: 1
           min_weight_fraction_leaf: 0.0
-          max_features:
+          max_features: 10
           max_leaf_nodes:
           min_impurity_decrease: 0.0
           bootstrap: true
@@ -61,9 +61,9 @@ stages:
     outs:
     - path: ./src/income-prediction/model/metrics.yml
       hash: md5
-      md5: b3c608720a134497e5fdb59635647f1b
+      md5: 1c2cbb5723a1c1db27cefe534f1798f0
       size: 87
     - path: ./src/income-prediction/model/model.joblib
       hash: md5
-      md5: 0453fa2ebdb3ecbece139eb83a7895f8
-      size: 48426458
+      md5: d807ad6407a20a156c9cce546f050110
+      size: 204050026
