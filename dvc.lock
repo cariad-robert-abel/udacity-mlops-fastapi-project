@@ -6,8 +6,8 @@ stages:
     deps:
     - path: ./src/income-prediction/__main__.py
       hash: md5
-      md5: 3820f7de9ab241d1b3705fa6433896fa
-      size: 6734
+      md5: 9682ca3c04db618399b17523c7c2fec5
+      size: 11978
     params:
       cfg/preprocessing.yml:
         data: census-income-clean:latest

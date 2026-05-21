@@ -13,6 +13,7 @@ __pycache__/
 .vscode/
 
 # Logs
+/slice_output.txt
 *.log
 
 # Auto-Generated Files

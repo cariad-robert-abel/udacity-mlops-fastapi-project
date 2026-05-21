@@ -176,7 +176,7 @@ def serve(host: str, port: int, model_ref: str, data_ref: str):
         host: host name/address to bind the server
         port: port number to bind the server
         model_ref: fully-qualified reference to the model artifact in <model-name>:<alias> format
-        data_ref: fully-qualified reference to the data artifact in <data-name>:<alias>
+        data_ref: fully-qualified reference to the data artifact in <data-name>:<alias> format
 
     Raises:
         OSError: if model or data files cannot be accessed
@@ -205,6 +205,55 @@ def serve(host: str, port: int, model_ref: str, data_ref: str):
     uvicorn.run(app, host=host, port=port)
 
 
+def metrics(model_ref: str, data_ref: str, slice: str, output: Path):
+    """Calculate and Store Metrics for a Data Slice
+
+    Args:
+        model_ref: fully-qualified reference to the model artifact in <model-name>:<alias> format
+        data_ref: fully-qualified reference to the data artifact in <data-name>:<alias> format
+        slice: column name to slice the data on, e.g. 'education'
+        output: path to the output metrics file
+
+    Raises:
+        KeyError: if the slice isn't actually a column in the dataset
+        OSError: if model or data files cannot be accessed
+    """
+    logger.info(f'Calculating metrics for the model {model_ref} with dataset {data_ref} slicing {slice}...')
+
+    # use W&B artifacts without active run
+    api = wandb.Api()
+
+    # download model and test data artifacts
+    model_artifact = api.artifact(f'{os.environ["WANDB_PROJECT"]}/{model_ref}', type='model')
+    model_filename = model_artifact.file()
+    logger.info(f'Loaded model {model_artifact.name} ({model_artifact.version}) from W&B')
+    data_artifact = api.artifact(f'{os.environ["WANDB_PROJECT"]}/{data_ref}', type='cleaned-data')
+    data_dirname = data_artifact.download()
+    logger.info(f'Loaded dataset {data_artifact.name} ({data_artifact.version}) from W&B')
+    test = pd.read_csv(Path(data_dirname) / 'test.csv')
+
+    # create model
+    model = IncomePredictionModel.from_model(model_filename)
+
+    # compute metrics
+    result = {
+        group: dict(zip(('precision', 'recall', 'f-beta'), model.validate(subset)))
+        for group, subset in test.groupby(slice)
+    }
+
+    # print and store results
+    lines = [f'Metrics for data slice {slice} on model {model_ref} with dataset {data_ref}.']
+    logger.info(lines[-1])
+    for group, metrics in sorted(result.items()):
+        line = f'{group}: {" ".join(f"{k}={v:.4f}" for k, v in metrics.items())}'
+        logger.info(line)
+        lines.append(line)
+
+    logger.info(f'Storing metric results in {output}...')
+    with open(output, 'w') as f:
+        f.write('\n'.join(lines))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Income Classification App')
     subparsers = parser.add_subparsers(title='command', dest='command', description='Sub-Command')
@@ -226,6 +275,16 @@ def main() -> int:
     train_parser = subparsers.add_parser('train', help='Train the Model')
     train_parser.add_argument('--config', type=Path, required=True, help='Path to the training configuration file')
 
+    metrics_parser = subparsers.add_parser('metrics', help='Evaluate the Model on a Data Slice')
+    metrics_parser.add_argument('--data', type=str, default='census-income-split:reference',
+                                help='Fully-qualified reference data in <data-name>:<alias> format')
+    metrics_parser.add_argument('--model', type=str, default='income-prediction-model:production',
+                                help='Fully-qualified model name in <model-name>:<alias> format')
+    metrics_parser.add_argument('--slice', type=str, default='education',
+                                help='Column name to slice the data on, e.g. \'education\'')
+    metrics_parser.add_argument('--output', type=Path, default=Path('slice_output.txt'),
+                                help='Path to the output metrics file')
+
     args = parser.parse_args()
 
     # abort with fatal error message in case WANDB_PROJECT is not set
@@ -238,6 +297,8 @@ def main() -> int:
             prepare_data(args.config)
         case 'train':
             train_model(args.config)
+        case 'metrics':
+            metrics(args.model, args.data, args.slice, args.output)
         case 'serve':
             serve(args.host, args.port, args.model, args.data)
         case _:
