@@ -24,12 +24,57 @@ The associated Weights & Biases project is located at [wandb.ai/cariad-robert-ab
 
 This application is deployed to my Hugging Face Space [cariad-robert-abel/udacity-income-prediction](https://huggingface.co/spaces/cariad-robert-abel/income-prediction), which is hosted at [cariad-robert-abel-income-prediction.hf.space/](https://cariad-robert-abel-income-prediction.hf.space/).
 
-## Training
-
 This project uses [`dvc`](https://dvc.org/) to manage pipelines and version control data during
 training.
 [Weights & Biases](https://wandb.ai/) is used for experiment tracking and hosting datasets / models
 in production.
+
+## Preprocessing
+
+The original data was cleaned up using the [EDA](./EDA.ipynb) notebook.
+The train-test split is done using the `prep` pipeline stage, which can be run using:
+
+```bash
+dvc exp run prep
+```
+
+Check the [preprocessing.yml](./cfg/preprocessing.yml) parameter file for more information.
+
+## Training
+
+Training can be run using the `train` pipeline stage:
+
+```bash
+dvc exp run train
+```
+
+Check the [training.yml](./cfg/training.yml) parameter file for more information.
+
+## Production Model
+
+The production model is [income-prediction-model:production](https://wandb.ai/cariad-robert-abel-cariad-se/income-prediction/artifacts/model/income-prediction-model/production).
+Please find its detailed model card [here](./docs/model_card.md).
+
+## Performance Metrics
+
+Performance metrics can be computed live using the [census-income-split:reference](https://wandb.ai/cariad-robert-abel-cariad-se/income-prediction/artifacts/cleaned-data/census-income-split/reference) dataset from the Gradio web UI or via the command-line (see below).
+
+Please find an example output file [here](./docs/slice_output.txt) for a slice over the `education` column of the `test.csv`
+of the reference dataset.
+
+## Main Executable
+
+The main executable is used to implement the steps above as well as running a server that provides
+access to a graphical user interface as well as a REST-ful API.
+
+```bash
+python ./src/income-prediction/__main__.py prep [-h] --config CONFIG
+python ./src/income-prediction/__main__.py train [-h] --config CONFIG
+python ./src/income-prediction/__main__.py metrics [-h] [--data DATA] [--model MODEL] [--slice SLICE] [--output OUTPUT]
+python ./src/income-prediction/__main__.py serve [-h] [--host HOST] [--port PORT] [--data DATA] [--model MODEL]
+```
+
+The options should be self-explanatory, but do consult the built-in help (via `--help`/`-h`) if in doubt.
 
 ## Sanity Check
 
