@@ -8,6 +8,7 @@ import sys
 
 from pathlib import Path
 
+import gradio as gr
 import numpy as np
 import pandas as pd
 import yaml
@@ -17,6 +18,7 @@ from sklearn.model_selection import train_test_split
 
 from model import IncomePredictionModel
 from app import IncomePredictionApp
+from ui import IncomePredictionUI
 from __init__ import *  # noqa: F401,F403
 
 
@@ -167,18 +169,19 @@ def train_model(config_path: Path) -> None:
     run.finish()
 
 
-def serve(host: str, port: int, model_ref: str):
+def serve(host: str, port: int, model_ref: str, data_ref: str):
     """Serve Production Model with FastAPI App
 
     Args:
         host: host name/address to bind the server
         port: port number to bind the server
         model_ref: fully-qualified reference to the model artifact in <model-name>:<alias> format
+        data_ref: fully-qualified reference to the data artifact in <data-name>:<alias>
 
     Raises:
         OSError: if model or data files cannot be accessed
     """
-    logger.info(f'Serving the model {model_ref} on {host}:{port}...')
+    logger.info(f'Serving the model {model_ref} with dataset {data_ref} on {host}:{port}...')
 
     # use W&B artifacts without active run
     api = wandb.Api()
@@ -187,11 +190,18 @@ def serve(host: str, port: int, model_ref: str):
     model_artifact = api.artifact(f'{os.environ["WANDB_PROJECT"]}/{model_ref}', type='model')
     model_filename = model_artifact.file()
     logger.info(f'Loaded model {model_artifact.name} ({model_artifact.version}) from W&B')
+    data_artifact = api.artifact(f'{os.environ["WANDB_PROJECT"]}/{data_ref}', type='cleaned-data')
+    data_dirname = data_artifact.download()
+    logger.info(f'Loaded dataset {data_artifact.name} ({data_artifact.version}) from W&B')
+    test = pd.read_csv(Path(data_dirname) / 'test.csv')
 
     # create model and applications
     model = IncomePredictionModel.from_model(model_filename)
     app = IncomePredictionApp(model)
+    ui = IncomePredictionUI(model, test)
 
+    # mount Gradio at /ui (to avoid collisions)
+    app = gr.mount_gradio_app(app, ui, path="/ui")
     uvicorn.run(app, host=host, port=port)
 
 
@@ -205,6 +215,8 @@ def main() -> int:
     serve_parser = subparsers.add_parser('serve', help='Serve the App (default)')
     serve_parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to bind server')
     serve_parser.add_argument('--port', type=int, default=7860, help='Port to bind server')
+    serve_parser.add_argument('--data', type=str, default='census-income-split:reference',
+                              help='Fully-qualified reference data in <data-name>:<alias> format')
     serve_parser.add_argument('--model', type=str, default='income-prediction-model:production',
                               help='Fully-qualified model name in <model-name>:<alias> format')
 
@@ -227,7 +239,7 @@ def main() -> int:
         case 'train':
             train_model(args.config)
         case 'serve':
-            serve(args.host, args.port, args.model)
+            serve(args.host, args.port, args.model, args.data)
         case _:
             raise NotImplementedError(f'Unknown command: {args.command}')
 
