@@ -9,6 +9,7 @@ import sys
 FAIL_COLOR = '\033[91m'
 OK_COLOR = '\033[92m'
 WARN_COLOR = '\033[93m'
+RESET_COLOR = '\033[0m'
 
 def run_sanity_check(test_dir):
 
@@ -124,7 +125,7 @@ def run_sanity_check(test_dir):
     
     print(WARN_COLOR+"This is a heuristic based sanity testing and cannot guarantee the correctness of your code.")
     print(WARN_COLOR+"You should still check your work against the rubric to ensure you meet the criteria.")
-
+    print(RESET_COLOR)
 
 
 if __name__ == "__main__":

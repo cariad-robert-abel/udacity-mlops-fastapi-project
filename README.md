@@ -31,6 +31,16 @@ training.
 [Weights & Biases](https://wandb.ai/) is used for experiment tracking and hosting datasets / models
 in production.
 
+## Sanity Check
+
+Make sure to run `sanitycheck.py` with proper `PYTHONPATH` set and point to `tests/test_app.py`.
+For example on Windows:
+
+```powershell
+${env:PYTHONPATH}="./src/income-prediction"
+"./tests/test_app.py" | python ./sanitycheck.py
+```
+
 ## License
 
 Original files Copyright 2012–2020 Udacity, Inc.
