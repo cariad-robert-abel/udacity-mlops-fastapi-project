@@ -32,8 +32,8 @@ stages:
     deps:
     - path: ./src/income-prediction/__main__.py
       hash: md5
-      md5: 506a6b84e743b16c41defd0bbd48b755
-      size: 8883
+      md5: 9682ca3c04db618399b17523c7c2fec5
+      size: 11978
     - path: ./src/income-prediction/model.py
       hash: md5
       md5: 397f558d01ec3c4cd64b19a7500adc48
